@@ -12,7 +12,28 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+  
+  // 3. AGREGAR ESTRATEGIA DE MIGRACIÓN
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (Migrator m) {
+      // Se ejecuta cuando se crea la BD por primera vez
+      return m.createAll();
+    },
+    onUpgrade: (Migrator m, int from, int to) async {
+      // Se ejecuta cuando actualizas de una versión anterior
+      if (from == 1 && to == 2) {
+        // Migración de versión 1 a 2: agregar columna priority
+        await m.addColumn(tasks, tasks.priority);
+      }
+      
+      // Para futuras migraciones:
+      // if (from == 2 && to == 3) {
+      //   await m.addColumn(tasks, tasks.nuevaColumna);
+      // }
+    },
+  );
 
   // CRUD Operations
   Future<List<Task>> getAllTasks() => select(tasks).get();
@@ -21,6 +42,10 @@ class AppDatabase extends _$AppDatabase {
     if (completed == null) return getAllTasks();
     return (select(tasks)..where((t) => t.isCompleted.equals(completed))).get();
   }
+
+  // Nueva función: obtener tareas por prioridad
+  // Future<List<Task>> getTasksByPriority() => 
+  //   (select(tasks)..orderBy([(t) => OrderingTerm.desc(t.priority)])).get();
 
   Future<Task?> getTaskById(int id) =>
       (select(tasks)..where((t) => t.id.equals(id))).getSingleOrNull();
@@ -45,6 +70,16 @@ class AppDatabase extends _$AppDatabase {
       ),
     );
   }
+
+  // Future<bool> updateTaskPriority(int id, int priority) async {
+  //   return updateTask(
+  //     id,
+  //     TasksCompanion(
+  //       priority: Value(priority),
+  //       updatedAt: Value(DateTime.now()),
+  //     ),
+  //   );
+  // }
 }
 
 LazyDatabase _openConnection() {

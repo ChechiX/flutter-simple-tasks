@@ -7,6 +7,8 @@ class Tasks extends Table {
   BoolColumn get isCompleted => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get updatedAt => dateTime().nullable()();
+  // Nueva columna en versión 2
+  IntColumn get priority => integer().withDefault(const Constant(0))();
 }
 
 // Modelo de datos para usar en la UI
